@@ -66,8 +66,6 @@ server = credentials["server_name"]
 with imap_tools.MailBox(server).login(username, password) as mailbox:
     for folder in mailbox.folder.list():
         mailbox_name = folder["name"]
-        if mailbox_name in ['Archive', 'Deleted Items', 'Events Week 2020', 'New College CU']:
-            continue
         mailbox.folder.set(mailbox_name)
         mailbox_folder = make_folder_if_absent(SAVE_LOCATION, sanitize_filename(mailbox_name))
         for i, msg in enumerate(mailbox.fetch(reverse=False, mark_seen=False, limit=FOLDER_LIMIT)):
@@ -80,8 +78,6 @@ with imap_tools.MailBox(server).login(username, password) as mailbox:
                 subject_folder = make_folder_if_absent(mailbox_folder, sanitized_subject)
 
                 json_filename = enumerate_file_path(os.path.join(subject_folder, 'message.json'))
-                if i == 63:
-                    abc = 1
                 encoded_message = email_to_json.json_encode(msg)
                 write_to_file(json_filename, encoded_message, as_bytes=False)
 
@@ -95,3 +91,4 @@ with imap_tools.MailBox(server).login(username, password) as mailbox:
 
             print('\r' * len(str(i - 1)), f'{mailbox_name}: downloaded {i} message{plural(i)}...', end="",
                   flush=True)
+2

@@ -1,7 +1,6 @@
 import json
 import imap_tools
 import datetime
-import email
 
 
 def attachment_to_dict(attachment):
@@ -33,12 +32,12 @@ class EmailJSONEncoder(json.JSONEncoder):
 
         if isinstance(obj, imap_tools.message.MailMessage):
             # consider wrapping each of these in a try/catch decorator?
-            temp = {"__imap_tools.message.MailMessage__": True,
+            return {"__imap_tools.message.MailMessage__": True,
                     # "uid": obj.uid, # serialising UID not recommended
                     "subject": obj.subject,
                     "date": obj.date,
                     "from": obj.from_,
-                    #"to": obj.to, # causing errors at the moment with ö characters
+                    "to": obj.to,
                     "cc": obj.cc,
                     "bcc": obj.bcc,
                     "reply_to": obj.reply_to,
@@ -46,23 +45,16 @@ class EmailJSONEncoder(json.JSONEncoder):
                     "html": obj.html,
                     "flags": obj.flags,
                     "from_values": obj.from_values,
-                    #"to_values": obj.to_values, # causing errors at the moment with ö characters
+                    "to_values": obj.to_values,
                     "cc_values": obj.cc_values,
                     "bcc_values": obj.bcc_values,
                     "reply_to_values": obj.reply_to_values,
                     "headers": obj.headers,
                     "attachments": [attachment_to_dict(att) for att in obj.attachments],
                     # "obj_to_string": obj.obj.as_string(), # not essential data
-                    "_raw_uid_data": obj._raw_uid_data,  # not essential data
-                    "_raw_flag_data": obj._raw_flag_data  # not essential data
+                    "_raw_uid_data": obj._raw_uid_data,
+                    "_raw_flag_data": obj._raw_flag_data
                     }
-            try:
-                temp["to"] = obj.to
-                temp["to_values"] = obj.to_values
-            except TypeError:
-                temp["to"] = 'unable to decode to addresses'
-                temp["to_values"] = 'unable to decode to_values addresses'
-            return temp
 
         elif isinstance(obj, datetime.datetime):
             return {"__datetime__": True,
@@ -73,8 +65,7 @@ class EmailJSONEncoder(json.JSONEncoder):
             except:
                 print('\n utf-8 character set was not usable. Trying cp437...\n')
                 return str(obj, 'cp437')
-
-        return json.JSONEncoder(indent=4).default(self, obj)
+        return json.JSONEncoder(indent=4).default(obj)
 
 
 class EmailJSONDecoder(json.JSONDecoder):
@@ -107,5 +98,4 @@ class EmailJSONDecoder(json.JSONDecoder):
             for i in range(0, len(obj)):
                 obj[i] = self.object_hook(obj[i])
             return obj
-
         return obj
